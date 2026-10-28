@@ -1,0 +1,32 @@
+<style>
+  :root { --fg:#1f2933; --muted:#6b7785; --line:#e1e6ec; --brand:#2457a6; --ok:#1e7f4f; --warn:#b26a00; --ng:#b42318; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: "Hiragino Sans","Noto Sans JP",system-ui,sans-serif; color:var(--fg); background:#f6f8fa; }
+  header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--brand); color:#fff; }
+  header h1 { font-size:18px; margin:0; }
+  .me { font-size:13px; opacity:.9; }
+  nav { display:flex; gap:4px; padding:8px 16px 0; background:#fff; border-bottom:1px solid var(--line); overflow-x:auto; }
+  nav button { border:0; background:none; padding:10px 12px; font-size:14px; cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap; }
+  nav button.active { border-color:var(--brand); color:var(--brand); font-weight:600; }
+  main { max-width:960px; margin:0 auto; padding:16px; }
+  .tab { display:none; } .tab.active { display:block; }
+  .toolbar { display:flex; gap:8px; margin-bottom:12px; }
+  input, select { width:100%; padding:10px; border:1px solid var(--line); border-radius:6px; font-size:15px; margin-top:4px; }
+  .toolbar input { flex:1; } .toolbar select { width:auto; }
+  label { display:block; margin-bottom:14px; font-size:14px; color:var(--muted); }
+  form { background:#fff; padding:16px; border-radius:8px; border:1px solid var(--line); max-width:480px; }
+  button[type=submit], .btn { background:var(--brand); color:#fff; border:0; border-radius:6px; padding:10px 16px; font-size:15px; cursor:pointer; }
+  button:disabled { opacity:.5; cursor:wait; }
+  table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:8px; overflow:hidden; font-size:14px; }
+  th, td { padding:10px; text-align:left; border-bottom:1px solid var(--line); }
+  th { background:#f0f3f7; font-weight:600; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:12px; color:#fff; }
+  .s-貸出可 { background:var(--ok); } .s-貸出中 { background:var(--brand); } .s-修理中 { background:var(--warn); }
+  .late { color:var(--ng); font-weight:600; }
+  .muted { color:var(--muted); }
+  .cards { list-style:none; padding:0; margin:0; display:grid; gap:10px; }
+  .cards li { background:#fff; border:1px solid var(--line); border-radius:8px; padding:12px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  #toast { position:fixed; left:50%; top:12px; transform:translateX(-50%); padding:10px 16px; border-radius:6px; color:#fff; font-size:14px; display:none; z-index:10; max-width:90vw; }
+  #toast.ok { background:var(--ok); display:block; } #toast.ng { background:var(--ng); display:block; }
+  @media (max-width:600px) { th:nth-child(2), td:nth-child(2) { display:none; } }
+</style>

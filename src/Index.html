@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <?!= include('Styles'); ?>
+</head>
+<body>
+  <header>
+    <h1>PC貸出管理</h1>
+    <span id="me" class="me"></span>
+  </header>
+
+  <nav id="tabs">
+    <button data-tab="devices" class="active">機器一覧</button>
+    <button data-tab="borrow">借りる</button>
+    <button data-tab="mine">自分の貸出</button>
+    <button data-tab="return" class="staff-only" hidden>返却受付</button>
+  </nav>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <main>
+    <section id="devices" class="tab active">
+      <div class="toolbar">
+        <input id="q" type="search" placeholder="資産番号・機種で検索">
+        <select id="statusFilter">
+          <option value="">すべて</option>
+          <option>貸出可</option><option>貸出中</option><option>修理中</option>
+        </select>
+      </div>
+      <table>
+        <thead><tr><th>資産番号</th><th>機種</th><th>状態</th><th>利用者 / 期限</th></tr></thead>
+        <tbody id="deviceRows"><tr><td colspan="4" class="muted">読み込み中…</td></tr></tbody>
+      </table>
+    </section>
+
+    <section id="borrow" class="tab">
+      <form id="borrowForm">
+        <label>資産番号<input name="assetTag" required placeholder="例: PC-0012" autocomplete="off"></label>
+        <label class="staff-only" hidden>借りる人のメールアドレス（代理貸出）
+          <input name="borrowerEmail" type="email" placeholder="空欄なら自分">
+        </label>
+        <label>利用目的<input name="purpose" required maxlength="100" placeholder="例: 出張先でのプレゼン"></label>
+        <label>貸出期間（営業日）<input name="businessDays" type="number" min="1" max="20" id="days"></label>
+        <button type="submit">貸出を登録</button>
+      </form>
+    </section>
+
+    <section id="mine" class="tab">
+      <ul id="myLoans" class="cards"></ul>
+    </section>
+
+    <section id="return" class="tab">
+      <form id="returnForm">
+        <label>資産番号<input name="assetTag" required autocomplete="off"></label>
+        <label>状態
+          <select name="condition"><option>良好</option><option>要修理</option></select>
+        </label>
+        <label>メモ<input name="note" maxlength="200" placeholder="例: キーボード一部反応なし"></label>
+        <button type="submit">返却を受け付ける</button>
+      </form>
+    </section>
+  </main>
+
+  <?!= include('JavaScript'); ?>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "pc-lending-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PC / device lending management on Google Apps Script + Google Sheets",
+  "scripts": {
+    "test": "TZ=Asia/Tokyo node --test test/*.test.js",
+    "push": "clasp push",
+    "deploy": "clasp push && clasp deploy --description \"$(git rev-parse --short HEAD)\""
+  },
+  "engines": { "node": ">=20" },
+  "license": "MIT"
+}

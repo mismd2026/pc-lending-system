@@ -1,0 +1,115 @@
+<script>
+  var state = { me: null, devices: [], myLoans: [] };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function toast(msg, ok) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = ok ? 'ok' : 'ng';
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(function () { t.className = ''; }, ok ? 3000 : 6000);
+  }
+
+  /** google.script.run wrapped as a Promise that resolves to {ok,data|error}. */
+  function call(fn, arg) {
+    return new Promise(function (resolve) {
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(function (e) { resolve({ ok: false, error: e.message || String(e) }); })[fn](arg);
+    });
+  }
+
+  function load() {
+    return call('apiBootstrap').then(function (res) {
+      if (!res.ok) { toast(res.error, false); return; }
+      state = res.data;
+      document.getElementById('me').textContent = state.me.name + '（' + state.me.role + '）';
+      var staff = state.me.role === 'staff' || state.me.role === 'admin';
+      document.querySelectorAll('.staff-only').forEach(function (el) { el.hidden = !staff; });
+      document.getElementById('days').placeholder = state.settings.loanBusinessDays;
+      renderDevices();
+      renderMine();
+    });
+  }
+
+  function renderDevices() {
+    var q = document.getElementById('q').value.trim().toLowerCase();
+    var st = document.getElementById('statusFilter').value;
+    var rows = state.devices.filter(function (d) {
+      return (!st || d.status === st) &&
+        (!q || (d.assetTag + ' ' + d.model).toLowerCase().indexOf(q) >= 0);
+    });
+    document.getElementById('deviceRows').innerHTML = rows.length ? rows.map(function (d) {
+      var who = d.borrowerName
+        ? esc(d.borrowerName) + ' / <span class="' + (d.overdue ? 'late' : '') + '">' + esc(d.dueDate) +
+          (d.overdue ? '（延滞）' : '') + '</span>'
+        : '<span class="muted">' + esc(d.location) + '</span>';
+      return '<tr><td>' + esc(d.assetTag) + '</td><td>' + esc(d.model) + '</td>' +
+        '<td><span class="badge s-' + esc(d.status) + '">' + esc(d.status) + '</span></td><td>' + who + '</td></tr>';
+    }).join('') : '<tr><td colspan="4" class="muted">該当する機器はありません</td></tr>';
+  }
+
+  function renderMine() {
+    var ul = document.getElementById('myLoans');
+    ul.innerHTML = state.myLoans.length ? state.myLoans.map(function (l) {
+      return '<li><div><strong>' + esc(l.assetTag) + '</strong> <span class="muted">' + esc(l.purpose) + '</span><br>' +
+        '<span class="' + (l.overdue ? 'late' : 'muted') + '">返却期限 ' + esc(l.dueDate) + (l.overdue ? '（延滞中）' : '') +
+        '</span></div><button class="btn" data-extend="' + esc(l.loanId) + '">5営業日延長</button></li>';
+    }).join('') : '<li class="muted">借りている機器はありません</li>';
+  }
+
+  function formData(form) {
+    var o = {};
+    new FormData(form).forEach(function (v, k) { if (v !== '') o[k] = v; });
+    return o;
+  }
+
+  function submitWith(form, fn, onOk) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var btn = form.querySelector('button[type=submit]');
+      btn.disabled = true;
+      call(fn, formData(form)).then(function (res) {
+        btn.disabled = false;
+        if (!res.ok) return toast(res.error, false);
+        toast(onOk(res.data), true);
+        form.reset();
+        load();
+      });
+    });
+  }
+
+  document.getElementById('tabs').addEventListener('click', function (e) {
+    var tab = e.target.getAttribute('data-tab');
+    if (!tab) return;
+    document.querySelectorAll('#tabs button, .tab').forEach(function (el) { el.classList.remove('active'); });
+    e.target.classList.add('active');
+    document.getElementById(tab).classList.add('active');
+  });
+  document.getElementById('q').addEventListener('input', renderDevices);
+  document.getElementById('statusFilter').addEventListener('change', renderDevices);
+  document.getElementById('myLoans').addEventListener('click', function (e) {
+    var id = e.target.getAttribute('data-extend');
+    if (!id) return;
+    e.target.disabled = true;
+    call('apiExtend', { loanId: id, businessDays: 5 }).then(function (res) {
+      if (!res.ok) { e.target.disabled = false; return toast(res.error, false); }
+      toast('返却期限を ' + res.data.dueDate + ' に延長しました', true);
+      load();
+    });
+  });
+
+  submitWith(document.getElementById('borrowForm'), 'apiCheckout', function (d) {
+    return d.assetTag + ' を貸し出しました。返却期限は ' + d.dueDate + ' です';
+  });
+  submitWith(document.getElementById('returnForm'), 'apiReturn', function (d) {
+    return d.assetTag + ' の返却を受け付けました（' + d.deviceStatus + '）' + (d.lateDays ? ' ／ ' + d.lateDays + '日延滞' : '');
+  });
+
+  load();
+</script>
